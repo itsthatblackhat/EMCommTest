@@ -15,6 +15,7 @@ EMCommTest is primarily intended for developers and scientists working on or stu
 
 ### Project Structure
 EMCommTest/
+```
 ├── src/ - Contains the source code of the project
 │   ├── server/ - Server-side logic
 │   │   ├── app.mjs - The main application file, initializes the server and applies middleware.
@@ -28,7 +29,7 @@ EMCommTest/
 ├── tests/ - Contains test scripts to validate the functionality of the simulation.
 ├── README.md - Project overview, setup instructions, and usage guide.
 └── package.json - Node.js project manifest, includes scripts for running and testing the application.
-
+```
 
 
 ### How to Use
