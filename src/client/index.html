@@ -1,3 +1,5 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,6 +13,26 @@
 <div class="container">
     <h1>EMCommTest</h1>
     <div id="status">Connecting...</div>
+
+    <!-- Simulation Controls -->
+    <div class="simulation-controls">
+        <h2>Simulation Settings</h2>
+        <label for="latency">Latency (ms):</label>
+        <input type="number" id="latency" min="0" max="3000000" step="1000" value="60000">
+
+        <label for="bandwidth">Bandwidth (kbps):</label>
+        <input type="number" id="bandwidth" min="1" max="1000000" step="1000" value="4000">
+
+        <label for="scenario">Select Scenario:</label>
+        <select id="scenario">
+            <option value="custom">Custom</option>
+            <option value="current">Current Mars Communication (~4 Mbps @ 1.5 AU)</option>
+            <option value="future">Future High Bandwidth (>1 Pb/s)</option>
+        </select>
+
+        <button id="apply-settings">Apply Settings</button>
+    </div>
+
     <div class="form">
         <input type="text" id="message" placeholder="Enter message">
         <button id="send">Send</button>

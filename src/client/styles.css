@@ -1,57 +1,199 @@
 /* styles.css */
 
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background-color: #121212; /* Dark background */
+    color: #E0E0E0;            /* Light text color */
     margin: 0;
-    background-color: #f0f0f0;
+    padding: 0;
 }
 
 .container {
-    background: white;
+    max-width: 800px;
+    margin: 40px auto;
     padding: 20px;
+    background-color: #1E1E1E; /* Slightly lighter dark background */
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+h1, h2 {
+    color: #FFFFFF;
+    margin-bottom: 20px;
     text-align: center;
 }
 
-h1 {
-    color: #333;
+h2 {
+    margin-top: 40px;
+    font-size: 1.5em;
 }
 
+p {
+    color: #CCCCCC;
+    line-height: 1.6;
+}
+
+/* Status Message */
 #status {
     margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
 }
 
-.form {
+/* Simulation Controls */
+.simulation-controls {
     margin: 20px 0;
+    padding: 20px;
+    background-color: #2A2A2A; /* Dark grey background */
+    border-radius: 8px;
 }
 
-input[type="text"] {
+.simulation-controls h2 {
+    margin-bottom: 15px;
+    color: #FFFFFF;
+    text-align: left;
+}
+
+.simulation-controls label {
+    display: block;
+    margin-top: 15px;
+    color: #E0E0E0;
+}
+
+.simulation-controls input,
+.simulation-controls select {
+    width: 100%;
     padding: 10px;
-    width: 70%;
-    border: 1px solid #ccc;
+    margin-top: 5px;
+    background-color: #3A3A3A; /* Dark input background */
+    border: 1px solid #555555;
     border-radius: 4px;
+    color: #FFFFFF;
 }
 
-button {
-    padding: 10px 20px;
-    background-color: #007BFF;
-    color: white;
+.simulation-controls button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background-color: #00695C; /* Teal button color */
+    color: #FFFFFF;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-size: 16px;
 }
 
-button:hover {
-    background-color: #0056b3;
+.simulation-controls button:hover {
+    background-color: #004D40; /* Darker teal on hover */
 }
 
-#response, #cachedResponse {
+/* Form Styles */
+.form {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.form input[type="text"] {
+    padding: 12px;
+    width: 70%;
+    background-color: #3A3A3A;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    color: #FFFFFF;
+}
+
+.form button {
+    padding: 12px 24px;
+    background-color: #1976D2; /* Blue button color */
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 16px;
+}
+
+.form button:hover {
+    background-color: #1565C0; /* Darker blue on hover */
+}
+
+/* Response Messages */
+#response,
+#cachedResponse {
     margin-top: 20px;
     font-weight: bold;
+    background-color: #2A2A2A;
+    padding: 15px;
+    border-radius: 4px;
+    color: #FFFFFF;
+    word-wrap: break-word;
+}
+
+/* Visual Aids */
+.visual-aids {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.visual-aids img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #555555;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.visual-aids p {
+    color: #CCCCCC;
+}
+
+/* Future Vision Section */
+.future-vision {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #2A2A2A;
+    border-radius: 8px;
+}
+
+.future-vision h2 {
+    margin-bottom: 15px;
+    color: #FFFFFF;
+}
+
+.future-vision p {
+    color: #CCCCCC;
+    line-height: 1.6;
+}
+
+/* Links */
+a {
+    color: #64B5F6;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .container {
+        margin: 20px;
+        padding: 15px;
+    }
+
+    .form input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .form button {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .simulation-controls button {
+        font-size: 14px;
+    }
 }
