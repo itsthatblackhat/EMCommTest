@@ -1,5 +1,3 @@
-<!-- index.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,12 +31,28 @@
         <button id="apply-settings">Apply Settings</button>
     </div>
 
-    <div class="form">
-        <input type="text" id="message" placeholder="Enter message">
-        <button id="send">Send</button>
+    <!-- Text Message Section -->
+    <div class="text-message-section">
+        <h2>Send Text Message</h2>
+        <div class="form">
+            <input type="text" id="message" placeholder="Enter message">
+            <button id="send">Send</button>
+        </div>
+        <div id="response">Waiting for response...</div>
     </div>
-    <div id="response">Waiting for response...</div>
-    <div id="cachedResponse"></div>
+
+    <!-- Image Transfer Section -->
+    <div class="image-transfer-section">
+        <h2>Transfer Image</h2>
+        <!-- Image Preview -->
+        <div id="imagePreview">
+            <h3>Image to Send:</h3>
+            <img src="images/dogmeme.png" alt="Dog Meme">
+        </div>
+        <button id="send-image">Send Image to Mars</button>
+        <div id="imageStatus">Waiting to send image...</div>
+        <div id="receivedImageContainer"></div>
+    </div>
 </div>
 
 <!-- Include your main.js script -->

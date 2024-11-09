@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send');
     const messageInput = document.getElementById('message');
     const responseDiv = document.getElementById('response');
-    const cachedResponseDiv = document.getElementById('cachedResponse');
+    const imageStatusDiv = document.getElementById('imageStatus');
+    const receivedImageContainer = document.getElementById('receivedImageContainer');
 
     // Simulation controls
     const latencyInput = document.getElementById('latency');
@@ -18,25 +19,20 @@ document.addEventListener('DOMContentLoaded', () => {
         status.textContent = 'Connected to server';
     });
 
-    socket.on('serverResponse', (data) => {
-        responseDiv.textContent = `Server Response: ${JSON.stringify(data)}`;
-    });
-
     sendBtn.addEventListener('click', () => {
         const message = messageInput.value.trim();
         if (message) {
-            socket.emit('requestData', { message: message }, (response) => {
-                responseDiv.textContent = `Server Response: ${response.data}`;
-            });
-            socket.emit('aiQuery', message, (result) => {
-                if (result.success) {
-                    responseDiv.textContent = `AI Response: ${result.data.data}`;
+            responseDiv.textContent = 'Waiting for server response...';
+
+            socket.emit('sendTextMessage', { message: message }, (response) => {
+                if (response.success) {
+                    responseDiv.textContent = `Received Message: ${response.data}`;
                 } else {
-                    responseDiv.textContent = `AI Error: ${result.message}`;
+                    responseDiv.textContent = `Error: ${response.message}`;
                 }
             });
+
             messageInput.value = '';
-            responseDiv.textContent = 'Waiting for server response...';
         }
     });
 
@@ -79,20 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.emit('updateSettings', settings);
     }
 
-    function getCachedData() {
-        fetch('/data')
-            .then(response => {
-                const cacheStatus = response.headers.get('X-Cache') || 'Unknown';
-                return response.json().then(data => ({ data, cacheStatus }));
-            })
-            .then(({ data, cacheStatus }) => {
-                cachedResponseDiv.textContent = `Cached Response (Cache Status: ${cacheStatus}): ${JSON.stringify(data)}`;
-            })
-            .catch(error => {
-                cachedResponseDiv.textContent = `Error fetching cached data: ${error.message}`;
-            });
+    // Function to send the image
+    function sendImage() {
+        imageStatusDiv.textContent = 'Sending image...';
+
+        socket.emit('sendImage', {}, (response) => {
+            if (response.success) {
+                const imgUrl = `data:image/png;base64,${response.data}`;
+                displayReceivedImage(imgUrl);
+                imageStatusDiv.textContent = 'Image received successfully!';
+            } else {
+                imageStatusDiv.textContent = `Error: ${response.message}`;
+            }
+        });
     }
 
-    getCachedData();
-    setInterval(getCachedData, 60000);
+    // Function to display the received image
+    function displayReceivedImage(imgUrl) {
+        receivedImageContainer.innerHTML = ''; // Clear previous image
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.alt = 'Received Image';
+        receivedImageContainer.appendChild(img);
+    }
+
+    document.getElementById('send-image').addEventListener('click', sendImage);
 });

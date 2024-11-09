@@ -18,7 +18,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
 }
 
-h1, h2 {
+h1, h2, h3 {
     color: #FFFFFF;
     margin-bottom: 20px;
     text-align: center;
@@ -27,6 +27,11 @@ h1, h2 {
 h2 {
     margin-top: 40px;
     font-size: 1.5em;
+}
+
+h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
 }
 
 p {
@@ -88,9 +93,17 @@ p {
     background-color: #004D40; /* Darker teal on hover */
 }
 
-/* Form Styles */
+/* Text Message Section */
+.text-message-section {
+    margin-top: 40px;
+}
+
+.text-message-section h2 {
+    margin-bottom: 20px;
+}
+
 .form {
-    margin: 30px 0;
+    margin: 20px 0;
     text-align: center;
 }
 
@@ -118,9 +131,7 @@ p {
     background-color: #1565C0; /* Darker blue on hover */
 }
 
-/* Response Messages */
-#response,
-#cachedResponse {
+#response {
     margin-top: 20px;
     font-weight: bold;
     background-color: #2A2A2A;
@@ -130,50 +141,60 @@ p {
     word-wrap: break-word;
 }
 
-/* Visual Aids */
-.visual-aids {
+/* Image Transfer Section */
+.image-transfer-section {
     margin-top: 40px;
     text-align: center;
 }
 
-.visual-aids img {
+.image-transfer-section h2 {
+    margin-bottom: 20px;
+}
+
+.image-transfer-section button {
+    padding: 12px 24px;
+    background-color: #9C27B0; /* Purple button color */
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.image-transfer-section button:hover {
+    background-color: #7B1FA2; /* Darker purple on hover */
+}
+
+#imageStatus {
+    margin-top: 20px;
+    font-weight: bold;
+    background-color: #2A2A2A;
+    padding: 15px;
+    border-radius: 4px;
+    color: #FFFFFF;
+}
+
+#receivedImageContainer {
+    margin-top: 20px;
+}
+
+#receivedImageContainer img {
     max-width: 100%;
     height: auto;
     border: 1px solid #555555;
     border-radius: 8px;
-    margin-bottom: 15px;
 }
 
-.visual-aids p {
-    color: #CCCCCC;
+/* Image Preview */
+#imagePreview {
+    margin-bottom: 20px;
 }
 
-/* Future Vision Section */
-.future-vision {
-    margin-top: 40px;
-    padding: 20px;
-    background-color: #2A2A2A;
+#imagePreview img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #555555;
     border-radius: 8px;
-}
-
-.future-vision h2 {
-    margin-bottom: 15px;
-    color: #FFFFFF;
-}
-
-.future-vision p {
-    color: #CCCCCC;
-    line-height: 1.6;
-}
-
-/* Links */
-a {
-    color: #64B5F6;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
 }
 
 /* Mobile Responsiveness */
@@ -193,7 +214,8 @@ a:hover {
         margin-left: 0;
     }
 
-    .simulation-controls button {
+    .simulation-controls button,
+    .image-transfer-section button {
         font-size: 14px;
     }
 }

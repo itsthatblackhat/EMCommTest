@@ -8,10 +8,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { simulateLatency } from './latency.mjs';
 import { throttleBandwidth } from './bandwidth.mjs';
-import * as cache from './cache.mjs';
 import router from './router.mjs';
-import { batchData } from '../models/ai.mjs';
 import morgan from 'morgan';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,37 +39,60 @@ app.use('/', router);
 io.on('connection', (socket) => {
     console.log('A new client connected:', socket.id);
 
-    socket.on('requestData', (data, callback) => {
-        console.log('Received requestData event', data);
-        setTimeout(() => {
-            callback({ data: 'This is a delayed response from the server.' });
-            console.log('Sent delayed response');
-        }, 10000);
+    // Default settings
+    socket.simulationSettings = {
+        latency: 60000,   // Default latency in ms
+        bandwidth: 4000   // Default bandwidth in kbps
+    };
+
+    socket.on('updateSettings', (settings) => {
+        console.log(`Updating simulation settings for ${socket.id}:`, settings);
+        socket.simulationSettings = settings;
     });
 
-    socket.on('aiQuery', async (query, callback) => {
-        console.log('Received aiQuery:', query);
-        try {
-            const result = await batchData(query);
-            callback({ success: true, data: result });
-            console.log('AI query processed:', result);
-        } catch (error) {
-            callback({ success: false, message: error.message });
-            console.error('Error processing AI query:', error);
-        }
+    // Handle text message sending
+    socket.on('sendTextMessage', (data, callback) => {
+        console.log('Received text message:', data.message);
+        const latency = socket.simulationSettings.latency || 60000;
+
+        setTimeout(() => {
+            callback({ success: true, data: data.message });
+            console.log('Text message sent back to client.');
+        }, latency);
+    });
+
+    // Handle image sending
+    socket.on('sendImage', (data, callback) => {
+        console.log('Client is sending an image.');
+        const latency = socket.simulationSettings.latency || 60000;
+        const bandwidthKbps = socket.simulationSettings.bandwidth || 4000;
+        const bytesPerSecond = (bandwidthKbps * 1000) / 8;
+
+        const imagePath = path.join(__dirname, '../client/images/dogmeme.png');
+        fs.readFile(imagePath, (err, imageBuffer) => {
+            if (err) {
+                console.error('Error reading image file:', err);
+                return callback({ success: false, message: 'Error reading image file.' });
+            }
+
+            const dataSize = imageBuffer.length;
+            const transferTime = (dataSize / bytesPerSecond) * 1000; // in ms
+            const totalDelay = latency + transferTime;
+
+            console.log(`Simulating image transfer with total delay: ${totalDelay.toFixed(2)} ms`);
+
+            setTimeout(() => {
+                const imageBase64 = imageBuffer.toString('base64');
+                callback({ success: true, data: imageBase64 });
+                console.log('Image sent back to client.');
+            }, totalDelay);
+        });
     });
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });
 });
-
-// Remove or comment out the root route handler
-// This allows express.static to serve index.html by default
-// app.get('/', (req, res) => {
-//     console.log('Root URL accessed');
-//     res.send('EMCommTest server is running.');
-// });
 
 // Global error handler
 app.use((err, req, res, next) => {
