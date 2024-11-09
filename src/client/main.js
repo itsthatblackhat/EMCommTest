@@ -1,5 +1,7 @@
+// main.js
+
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io();
+    const socket = io(); // Use the global io object from the CDN
     const status = document.getElementById('status');
     const sendBtn = document.getElementById('send');
     const messageInput = document.getElementById('message');
@@ -17,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     sendBtn.addEventListener('click', () => {
         const message = messageInput.value.trim();
         if (message) {
-            socket.emit('requestData', { message: message });
+            socket.emit('requestData', { message: message }, (response) => {
+                responseDiv.textContent = `Server Response: ${response.data}`;
+            });
             socket.emit('aiQuery', message, (result) => {
                 if (result.success) {
                     responseDiv.textContent = `AI Response: ${result.data.data}`;
