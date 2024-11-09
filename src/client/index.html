@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <title>EMCommTest - Earth-Mars Communication Simulation</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Include Socket.io from CDN -->
-    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-VK8T6wB2S5x+0g/4SBnOYOih4C7yKgtQq192jUOGuE1nQ+6nO3e6Wk8o262vN0B" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="container">
@@ -17,18 +16,24 @@
         <h2>Simulation Settings</h2>
         <label for="latency">Latency (ms):</label>
         <input type="number" id="latency" min="0" max="3000000" step="1000" value="60000">
-
         <label for="bandwidth">Bandwidth (kbps):</label>
         <input type="number" id="bandwidth" min="1" max="1000000" step="1000" value="4000">
 
-        <label for="scenario">Select Scenario:</label>
-        <select id="scenario">
-            <option value="custom">Custom</option>
-            <option value="current">Current Mars Communication (~4 Mbps @ 1.5 AU)</option>
-            <option value="future">Future High Bandwidth (>1 Pb/s)</option>
+        <!-- Destination Selector -->
+        <label for="destination">Destination:</label>
+        <select id="destination">
+            <option value="Mars">Mars</option>
+            <option value="Moon">Moon</option>
+            <option value="Earth">Earth</option>
         </select>
 
         <button id="apply-settings">Apply Settings</button>
+    </div>
+
+    <!-- AI Feedback Section -->
+    <div id="aiFeedback">
+        <h3>AI Status</h3>
+        <div id="aiResponse">Waiting for AI...</div>
     </div>
 
     <!-- Text Message Section -->
@@ -38,24 +43,24 @@
             <input type="text" id="message" placeholder="Enter message">
             <button id="send">Send</button>
         </div>
+        <progress id="messageProgressBar" value="0" max="100"></progress>
         <div id="response">Waiting for response...</div>
+        <div id="messageStats"></div>
     </div>
 
     <!-- Image Transfer Section -->
     <div class="image-transfer-section">
         <h2>Transfer Image</h2>
-        <!-- Image Preview -->
         <div id="imagePreview">
             <h3>Image to Send:</h3>
-            <img src="images/dogmeme.png" alt="Dog Meme">
+            <img src="images/dogmeme.png" alt="Dog Meme" id="imageToSend">
         </div>
-        <button id="send-image">Send Image to Mars</button>
+        <button id="send-image">Send Image to Destination</button>
+        <progress id="imageProgressBar" value="0" max="100"></progress>
         <div id="imageStatus">Waiting to send image...</div>
         <div id="receivedImageContainer"></div>
     </div>
 </div>
-
-<!-- Include your main.js script -->
 <script src="main.js"></script>
 </body>
 </html>

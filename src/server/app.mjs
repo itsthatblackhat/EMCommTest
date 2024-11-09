@@ -1,5 +1,3 @@
-// app.mjs
-
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -11,6 +9,7 @@ import { throttleBandwidth } from './bandwidth.mjs';
 import router from './router.mjs';
 import morgan from 'morgan';
 import fs from 'fs';
+import { queryAI } from '../models/ai.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,85 +18,101 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Use Morgan for logging HTTP requests with status codes
 app.use(morgan('dev'));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files from the client directory
 app.use(express.static(path.join(__dirname, '../client')));
-
-// Apply latency and bandwidth middleware
 app.use(simulateLatency);
 app.use(throttleBandwidth);
-
-// Use the router for API routes
 app.use('/', router);
 
-// Socket.io setup
 io.on('connection', (socket) => {
-    console.log('A new client connected:', socket.id);
+    console.log('Client connected:', socket.id);
 
-    // Default settings
     socket.simulationSettings = {
-        latency: 60000,   // Default latency in ms
-        bandwidth: 4000   // Default bandwidth in kbps
+        latency: 60000, // Default latency
+        bandwidth: 4000 // Default bandwidth in kbps
     };
 
     socket.on('updateSettings', (settings) => {
-        console.log(`Updating simulation settings for ${socket.id}:`, settings);
         socket.simulationSettings = settings;
+        console.log(`Settings updated for ${socket.id}:`, settings);
     });
 
-    // Handle text message sending
-    socket.on('sendTextMessage', (data, callback) => {
-        console.log('Received text message:', data.message);
-        const latency = socket.simulationSettings.latency || 60000;
+    socket.on('sendAIQuery', async (data, callback) => {
+        const { message, destination, latency, bandwidth } = data;
+        console.log('Received AI query:', message);
 
-        setTimeout(() => {
-            callback({ success: true, data: data.message });
-            console.log('Text message sent back to client.');
-        }, latency);
+        // Use the latency and bandwidth settings from the client or fallback to defaults
+        const queryLatency = latency || socket.simulationSettings.latency;
+        const queryBandwidth = bandwidth || socket.simulationSettings.bandwidth;
+
+        const prompt = `
+    Given the following parameters:
+    - Message: "${message}"
+    - Latency (one-way): ${queryLatency} ms
+    - Bandwidth: ${queryBandwidth} kbps
+    - Destination: ${destination}
+
+    Calculate the estimated total transmission time from the origin to the destination and back, including any necessary data transmission time. Please respond in a JSON format:
+
+    {
+        "TimeEstimate": <estimated transmission time in milliseconds>
+    }
+    `;
+
+        console.log('Sending query to AI:', prompt);
+
+        setTimeout(async () => {
+            const aiResponse = await queryAI(prompt);
+            console.log('Received response from AI:', aiResponse);
+
+            if (aiResponse.success) {
+                // Ensure aiResponse.data is a string before using replace
+                const aiData = aiResponse.data;
+
+                if (typeof aiData === 'string') {
+                    const cleanResponse = aiData.replace(/```json\n?|\n?```/g, '').trim();
+                    let timeEstimate = JSON.parse(cleanResponse).TimeEstimate || 0;
+
+                    // Emit an event to update the client's UI with the calculated time
+                    io.emit('aiResponse', { success: true, data: `TimeEstimate:${timeEstimate}` });
+
+                    callback({ success: true, data: `TimeEstimate:${timeEstimate}` });
+                } else {
+                    console.error('AI response data is not a string:', aiData);
+                    io.emit('aiResponse', { success: false, message: 'Invalid AI response format' });
+                    callback({ success: false, message: 'Invalid AI response format' });
+                }
+            } else {
+                console.error('AI query failed:', aiResponse.message);
+                io.emit('aiResponse', { success: false, message: aiResponse.message });
+                callback({ success: false, message: aiResponse.message });
+            }
+            console.log('AI response processed');
+        }, queryLatency);
     });
 
-    // Handle image sending
     socket.on('sendImage', (data, callback) => {
-        console.log('Client is sending an image.');
-        const latency = socket.simulationSettings.latency || 60000;
-        const bandwidthKbps = socket.simulationSettings.bandwidth || 4000;
-        const bytesPerSecond = (bandwidthKbps * 1000) / 8;
-
+        const latency = socket.simulationSettings.latency;
+        const bandwidth = socket.simulationSettings.bandwidth;
         const imagePath = path.join(__dirname, '../client/images/dogmeme.png');
+
         fs.readFile(imagePath, (err, imageBuffer) => {
             if (err) {
-                console.error('Error reading image file:', err);
-                return callback({ success: false, message: 'Error reading image file.' });
+                return callback({ success: false, message: 'Failed to read image' });
             }
 
-            const dataSize = imageBuffer.length;
-            const transferTime = (dataSize / bytesPerSecond) * 1000; // in ms
-            const totalDelay = latency + transferTime;
-
-            console.log(`Simulating image transfer with total delay: ${totalDelay.toFixed(2)} ms`);
-
+            const transferTime = (imageBuffer.length / ((bandwidth * 1000) / 8)) * 1000; // Convert bandwidth to bytes per second
             setTimeout(() => {
-                const imageBase64 = imageBuffer.toString('base64');
-                callback({ success: true, data: imageBase64 });
-                console.log('Image sent back to client.');
-            }, totalDelay);
+                callback({ success: true, data: imageBuffer.toString('base64') });
+            }, latency + transferTime);
         });
     });
 
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        console.log('Client disconnected:', socket.id);
     });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).send({ error: 'An unexpected error occurred' });
 });
 
 const PORT = process.env.PORT || 8000;

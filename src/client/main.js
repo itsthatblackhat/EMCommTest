@@ -1,103 +1,89 @@
-// main.js
-
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io(); // Use the global io object from the CDN
+    const socket = io();
+
+    // Elements
     const status = document.getElementById('status');
     const sendBtn = document.getElementById('send');
     const messageInput = document.getElementById('message');
     const responseDiv = document.getElementById('response');
-    const imageStatusDiv = document.getElementById('imageStatus');
-    const receivedImageContainer = document.getElementById('receivedImageContainer');
-
-    // Simulation controls
+    const aiResponseDiv = document.getElementById('aiResponse');
+    const messageProgressBar = document.getElementById('messageProgressBar');
+    const messageStatsDiv = document.getElementById('messageStats');
+    const destinationSelect = document.getElementById('destination');
     const latencyInput = document.getElementById('latency');
     const bandwidthInput = document.getElementById('bandwidth');
-    const scenarioSelect = document.getElementById('scenario');
-    const applySettingsBtn = document.getElementById('apply-settings');
 
     socket.on('connect', () => {
         status.textContent = 'Connected to server';
+        console.log('Connected to server');
     });
 
+    socket.on('disconnect', () => {
+        status.textContent = 'Disconnected from server';
+        console.log('Disconnected from server');
+    });
+
+    // Function to update the progress bar based on the estimated time
+    function updateProgressBar(progressBar, duration) {
+        progressBar.value = 0;
+        let elapsedTime = 0;
+        const interval = setInterval(() => {
+            elapsedTime += 100;
+            progressBar.value = Math.min((elapsedTime / duration) * 100, 100);
+            if (elapsedTime >= duration) {
+                clearInterval(interval);
+            }
+        }, 100);
+    }
+
+    // Handle AI query
     sendBtn.addEventListener('click', () => {
         const message = messageInput.value.trim();
-        if (message) {
-            responseDiv.textContent = 'Waiting for server response...';
-
-            socket.emit('sendTextMessage', { message: message }, (response) => {
-                if (response.success) {
-                    responseDiv.textContent = `Received Message: ${response.data}`;
-                } else {
-                    responseDiv.textContent = `Error: ${response.message}`;
-                }
-            });
-
-            messageInput.value = '';
-        }
-    });
-
-    // Handle simulation settings
-    applySettingsBtn.addEventListener('click', () => {
+        const destination = destinationSelect.value;
         const latency = parseInt(latencyInput.value, 10);
         const bandwidth = parseInt(bandwidthInput.value, 10);
-        const scenario = scenarioSelect.value;
 
-        if (scenario !== 'custom') {
-            applyScenarioPreset(scenario);
-        } else {
-            socket.emit('updateSettings', { latency, bandwidth });
+        if (message) {
+            aiResponseDiv.textContent = 'Sending query to AI...';
+            responseDiv.textContent = 'Waiting for response...';
+            messageStatsDiv.textContent = '';
+
+            // Emit message to the server with settings
+            socket.emit('sendAIQuery', { message, destination, latency, bandwidth }, (response) => {
+                console.log('Response received from server:', response);
+                if (response && response.success) {
+                    const aiData = response.data;
+
+                    // Extract the estimated time from the AI response
+                    const timeEstimateMatch = aiData.match(/TimeEstimate:([\d]+)/);
+                    let estimatedTime = 0;
+
+                    if (timeEstimateMatch) {
+                        estimatedTime = parseInt(timeEstimateMatch[1], 10);
+                        aiResponseDiv.textContent = `AI Response: ${aiData}`;
+                        responseDiv.textContent = 'AI Response received!';
+
+                        // Start the progress bar
+                        updateProgressBar(messageProgressBar, estimatedTime);
+
+                        // Display stats
+                        messageStatsDiv.innerHTML = `
+                            <p><strong>Estimated Transmission Time:</strong> ${estimatedTime} ms</p>
+                            <p><strong>Latency:</strong> ${latency} ms</p>
+                            <p><strong>Bandwidth:</strong> ${bandwidth} kbps</p>
+                        `;
+                        console.log('UI updated successfully');
+                    } else {
+                        aiResponseDiv.textContent = 'Error: Could not extract time estimate from AI response';
+                        responseDiv.textContent = 'Failed to process AI response';
+                        console.error('Failed to extract time estimate from AI response:', aiData);
+                    }
+                } else {
+                    aiResponseDiv.textContent = `Error: ${response ? response.message : 'No response received'}`;
+                    responseDiv.textContent = 'Failed to receive AI response';
+                    console.error('Failed to process AI query:', response ? response.message : 'No response received');
+                }
+            });
         }
     });
-
-    function applyScenarioPreset(scenario) {
-        let settings = {};
-        switch (scenario) {
-            case 'current':
-                settings = {
-                    latency: 1260000, // Approximate one-way light time to Mars at 1.5 AU in ms (~21 minutes)
-                    bandwidth: 4000   // 4 Mbps
-                };
-                break;
-            case 'future':
-                settings = {
-                    latency: 1260000, // Latency remains the same due to speed of light
-                    bandwidth: 1000000000 // 1 Pb/s (Petabit per second)
-                };
-                break;
-            default:
-                settings = {
-                    latency: 60000,
-                    bandwidth: 4000
-                };
-        }
-        latencyInput.value = settings.latency;
-        bandwidthInput.value = settings.bandwidth;
-        socket.emit('updateSettings', settings);
-    }
-
-    // Function to send the image
-    function sendImage() {
-        imageStatusDiv.textContent = 'Sending image...';
-
-        socket.emit('sendImage', {}, (response) => {
-            if (response.success) {
-                const imgUrl = `data:image/png;base64,${response.data}`;
-                displayReceivedImage(imgUrl);
-                imageStatusDiv.textContent = 'Image received successfully!';
-            } else {
-                imageStatusDiv.textContent = `Error: ${response.message}`;
-            }
-        });
-    }
-
-    // Function to display the received image
-    function displayReceivedImage(imgUrl) {
-        receivedImageContainer.innerHTML = ''; // Clear previous image
-        const img = document.createElement('img');
-        img.src = imgUrl;
-        img.alt = 'Received Image';
-        receivedImageContainer.appendChild(img);
-    }
-
-    document.getElementById('send-image').addEventListener('click', sendImage);
 });
