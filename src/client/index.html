@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMCommTest - Earth-Mars Communication Simulation</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-VK8T6wB2S5x+0g/4SBnOYOih4C7yKgtQq192jUOGuE1nQ+6nO3e6Wk8o262vN0B" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+    <h1>EMCommTest</h1>
+    <div id="status">Connecting...</div>
+    <div class="form">
+        <input type="text" id="message" placeholder="Enter message">
+        <button id="send">Send</button>
+    </div>
+    <div id="response">Waiting for response...</div>
+    <div id="cachedResponse"></div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
