@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <title>EMCommTest - Earth-Mars Communication Simulation</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous"></script>
+    <!-- Remove or update integrity attribute if incorrect -->
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="" crossorigin="anonymous"></script>
+    <script src="time.js" defer></script>
+    <script src="main.js" defer></script>
 </head>
 <body>
 <div class="container">
+    <header>
+        <div class="time-display">
+            <div id="earth-time">Earth Time: Loading...</div>
+            <div id="mars-time">Mars Time: Loading...</div>
+        </div>
+    </header>
     <h1>EMCommTest</h1>
     <div class="introduction">
         <h3>Welcome to EMCommTest</h3>
-
     </div>
     <div id="status">Connecting...</div>
 
@@ -32,12 +40,6 @@
         </select>
 
         <button id="apply-settings">Apply Settings</button>
-    </div>
-
-    <!-- AI Feedback Section -->
-    <div id="aiFeedback">
-        <h3>AI Feedback</h3>
-        <div id="aiResponse">Waiting for AI...</div>
     </div>
 
     <!-- Text Message Section -->

@@ -51,29 +51,35 @@ document.addEventListener('DOMContentLoaded', () => {
             // Emit message to the server with settings
             socket.emit('sendAIQuery', { message, destination, latency, bandwidth }, (response) => {
                 console.log('Response received from server:', response);
-                if (response && response.success) {
-                    const { timeEstimate, distance, speed, solsDifference } = response.data;
+                if (response) {
+                    if (response.success) {
+                        const { timeEstimate, distance, speed, solsDifference } = response.data;
 
-                    aiResponseDiv.textContent = `AI Response received!`;
-                    responseDiv.textContent = `AI Response received!`;
+                        aiResponseDiv.textContent = 'AI Response received!';
+                        responseDiv.textContent = 'AI Response received!';
 
-                    // Start the progress bar
-                    updateProgressBar(messageProgressBar, timeEstimate);
+                        // Start the progress bar
+                        updateProgressBar(messageProgressBar, timeEstimate);
 
-                    // Display stats
-                    messageStatsDiv.innerHTML = `
-                        <p><strong>Estimated Transmission Time:</strong> ${timeEstimate} ms</p>
-                        <p><strong>Latency:</strong> ${latency} ms</p>
-                        <p><strong>Bandwidth:</strong> ${bandwidth} kbps</p>
-                        <p><strong>Approx. Distance Traveled:</strong> ${distance.toLocaleString()} km</p>
-                        <p><strong>Approx. Speed:</strong> ${speed.toFixed(2)} km/s</p>
-                        <p><strong>Sols Since Last Sync:</strong> ${solsDifference}</p>
-                    `;
-                    console.log('UI updated successfully');
+                        // Display stats
+                        messageStatsDiv.innerHTML = `
+                <p><strong>Estimated Transmission Time:</strong> ${timeEstimate} ms</p>
+                <p><strong>Latency:</strong> ${latency} ms</p>
+                <p><strong>Bandwidth:</strong> ${bandwidth} kbps</p>
+                <p><strong>Approx. Distance Traveled:</strong> ${distance.toLocaleString()} km</p>
+                <p><strong>Approx. Speed:</strong> ${speed.toFixed(2)} km/s</p>
+                <p><strong>Sols Since Last Sync:</strong> ${solsDifference}</p>
+            `;
+                        console.log('UI updated successfully');
+                    } else {
+                        aiResponseDiv.textContent = `Error: ${response.message}`;
+                        responseDiv.textContent = 'Failed to receive AI response';
+                        console.error('Failed to process AI query:', response.message);
+                    }
                 } else {
-                    aiResponseDiv.textContent = `Error: ${response ? response.message : 'No response received'}`;
+                    aiResponseDiv.textContent = 'Error: No response received from server';
                     responseDiv.textContent = 'Failed to receive AI response';
-                    console.error('Failed to process AI query:', response ? response.message : 'No response received');
+                    console.error('No response received from server');
                 }
             });
         }
