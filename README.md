@@ -1,43 +1,103 @@
-# EMCommTest: Mars-Earth Communication Simulator
+# EMCommTest - Earth-Mars Communication Simulation
 
-**EMCommTest** is a simulation project designed to mimic the communication delays and bandwidth limitations between Earth and Mars. This project leverages various Node.js technologies to simulate these conditions, providing a platform for testing and understanding the challenges of interplanetary communication.
+EMCommTest is an interactive web application designed to simulate and visualize the complexities of communication between Earth and Mars. This project incorporates elements of network simulation, AI interaction, and time synchronization to provide an educational tool for understanding interplanetary communication challenges.
 
-### Overview
-EMCommTest is primarily intended for developers and scientists working on or studying interplanetary communication systems. It simulates the latencies and bandwidth constraints one might encounter when sending data between Mars and Earth, which is vital for designing robust communication protocols and applications that could be used in future Mars missions.
+## Features
 
-### Technologies Used
-- **Node.js**: For server-side logic and handling of HTTP requests.
-- **Express.js**: A web application framework that simplifies the server creation process.
-- **Custom Middleware**: 
-  - **latency.mjs**: To introduce artificial delays in request responses.
-  - **bandwidth.mjs**: To simulate limited bandwidth by throttling data transfer rates.
-  - **cache.mjs**: A basic caching mechanism to simulate how data might be stored temporarily for quick access due to communication delays.
+- **Realistic Time Simulation**: Accounts for the difference between an Earth day and a Martian sol, simulating how timekeeping might work in a Martian colony.
+- **Latency and Bandwidth Simulation**: Allows users to adjust communication parameters to understand their impact on interplanetary data transmission.
+- **AI Query System**: Integrates with an AI to estimate transmission times based on user inputs like message content, destination, latency, and bandwidth.
+- **Image Transfer**: Simulates the transfer of an image between planets, showcasing how data size affects transmission time.
+- **Educational Explanation**: Provides context on time synchronization and how it's managed in the simulation.
 
-### Project Structure
+## Getting Started
+
+These instructions will help you set up a copy of the project on your local machine for development and testing.
+
+### Prerequisites
+
+- **Node.js** (v14 or above)
+- **npm** (usually comes with Node.js)
+
+### Installation
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/your-username/EMCommTest.git
+   cd EMCommTest
+   ```
+
+2. **Install npm packages:**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up Environment Variables:**
+
+   Create a `.env` file in the root of your project with the following content:
+
+   ```env
+   PORT=8000
+   XAI_API_KEY=your_xai_api_key_here
+   ```
+
+   Replace `your_xai_api_key_here` with your actual API key for xAI or whichever AI service you're using.
+
+### Running the Application
+
+To start the server:
+
+```bash
+npm start
+```
+
+This will compile your frontend assets if necessary and start both the server and client in development mode.
+
+Open your browser and navigate to [http://localhost:8000](http://localhost:8000) to use EMCommTest.
+
+### Testing
+
+Currently, there are no automated tests set up. However, manual testing can be performed by interacting with the interface and verifying that outputs match expectations.
+
+## Project Structure
+
+```
 EMCommTest/
+├── src/
+│   ├── server/
+│   │   ├── app.mjs          # Main server application logic
+│   │   ├── router.mjs       # Route handlers
+│   │   ├── latency.mjs      # Middleware for simulating network conditions
+│   │   ├── bandwidth.mjs    # Middleware for simulating bandwidth constraints
+│   │   └── models/
+│   │       └── ai.mjs       # Functions to interact with the AI API
+│   └── client/
+│       ├── index.html       # Main HTML file
+│       ├── main.js          # Client-side JavaScript
+│       └── styles.css       # Styles for the application
+├── .env                     # Environment variables (ignored by git)
+├── package.json             # Metadata for the project, including scripts and dependencies
+└── README.md                # Documentation for the project
 ```
-├── src/ - Contains the source code of the project
-│   ├── server/ - Server-side logic
-│   │   ├── app.mjs - The main application file, initializes the server and applies middleware.
-│   │   ├── router.mjs - Defines the API routes for handling different types of requests.
-│   │   ├── latency.mjs - Middleware to simulate communication delay, customizable to different delay profiles.
-│   │   ├── bandwidth.mjs - Middleware to throttle bandwidth, simulating the limited data transfer capabilities.
-│   │   └── cache.mjs - Implements a simple in-memory cache to store frequently accessed data, reducing the need for repeated transmissions in a high-latency environment.
-│   ├── client/ - Client-side code, if applicable, for frontend interactions.
-│   │   └── index.html - Example HTML file for demonstrating client-server interaction.
-│   └── config/ - Configuration files for setting up environment variables, simulation parameters, etc.
-├── tests/ - Contains test scripts to validate the functionality of the simulation.
-├── README.md - Project overview, setup instructions, and usage guide.
-└── package.json - Node.js project manifest, includes scripts for running and testing the application.
-```
 
+## Built With
 
-### How to Use
-1. **Clone the Repository**: Start by cloning the project to your local machine.
-2. **Install Dependencies**: Run `npm install` to install all necessary dependencies listed in `package.json`.
-3. **Configure the Environment**: Set up any environment variables needed for the simulation, such as latency and bandwidth parameters.
-4. **Run the Server**: Use `npm start` to start the server, or `npm run dev` for development mode with hot-reloading.
-5. **Test the Simulation**: Use the provided test scripts or write your own to simulate data transfer between Earth and Mars under various conditions.
+- **Express.js** - The web framework used for the server.
+- **Socket.IO** - For real-time, bidirectional event-based communication.
+- **Node.js** - JavaScript runtime built on Chrome's V8 JavaScript engine.
+- **xAI API** - For AI-driven time estimation calculations (or your chosen AI service).
 
-### Contributions
-Contributions to EMCommTest are welcome. Please fork the repository, make your changes, and submit a pull request. Ensure you follow the project's coding standards and add appropriate tests for new features or bug fixes.
+## Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+
+1. **Fork the Project**
+2. **Create your Feature Branch** (`git checkout -b feature/AmazingFeature`)
+3. **Commit your Changes** (`git commit -m 'Add some AmazingFeature'`)
+4. **Push to the Branch** (`git push origin feature/AmazingFeature`)
+5. **Open a Pull Request**
+
+## License
+idk, just do cool shit with it free of charge why we gotta complicate stuff bro?
