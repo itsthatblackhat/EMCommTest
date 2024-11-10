@@ -46,38 +46,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (message) {
             aiResponseDiv.textContent = 'Sending query to AI...';
             responseDiv.textContent = 'Waiting for response...';
-            messageStatsDiv.textContent = '';
+            messageStatsDiv.innerHTML = ''; // Clear previous stats
 
             // Emit message to the server with settings
             socket.emit('sendAIQuery', { message, destination, latency, bandwidth }, (response) => {
                 console.log('Response received from server:', response);
                 if (response && response.success) {
-                    const aiData = response.data;
+                    const { timeEstimate, distance, speed, solsDifference } = response.data;
 
-                    // Extract the estimated time from the AI response
-                    const timeEstimateMatch = aiData.match(/TimeEstimate:([\d]+)/);
-                    let estimatedTime = 0;
+                    aiResponseDiv.textContent = `AI Response received!`;
+                    responseDiv.textContent = `AI Response received!`;
 
-                    if (timeEstimateMatch) {
-                        estimatedTime = parseInt(timeEstimateMatch[1], 10);
-                        aiResponseDiv.textContent = `AI Response: ${aiData}`;
-                        responseDiv.textContent = 'AI Response received!';
+                    // Start the progress bar
+                    updateProgressBar(messageProgressBar, timeEstimate);
 
-                        // Start the progress bar
-                        updateProgressBar(messageProgressBar, estimatedTime);
-
-                        // Display stats
-                        messageStatsDiv.innerHTML = `
-                            <p><strong>Estimated Transmission Time:</strong> ${estimatedTime} ms</p>
-                            <p><strong>Latency:</strong> ${latency} ms</p>
-                            <p><strong>Bandwidth:</strong> ${bandwidth} kbps</p>
-                        `;
-                        console.log('UI updated successfully');
-                    } else {
-                        aiResponseDiv.textContent = 'Error: Could not extract time estimate from AI response';
-                        responseDiv.textContent = 'Failed to process AI response';
-                        console.error('Failed to extract time estimate from AI response:', aiData);
-                    }
+                    // Display stats
+                    messageStatsDiv.innerHTML = `
+                        <p><strong>Estimated Transmission Time:</strong> ${timeEstimate} ms</p>
+                        <p><strong>Latency:</strong> ${latency} ms</p>
+                        <p><strong>Bandwidth:</strong> ${bandwidth} kbps</p>
+                        <p><strong>Approx. Distance Traveled:</strong> ${distance.toLocaleString()} km</p>
+                        <p><strong>Approx. Speed:</strong> ${speed.toFixed(2)} km/s</p>
+                        <p><strong>Sols Since Last Sync:</strong> ${solsDifference}</p>
+                    `;
+                    console.log('UI updated successfully');
                 } else {
                     aiResponseDiv.textContent = `Error: ${response ? response.message : 'No response received'}`;
                     responseDiv.textContent = 'Failed to receive AI response';
@@ -85,5 +77,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+    });
+
+    // Add event listener for updating settings
+    document.getElementById('apply-settings').addEventListener('click', () => {
+        const settings = {
+            latency: parseInt(latencyInput.value, 10),
+            bandwidth: parseInt(bandwidthInput.value, 10)
+        };
+        socket.emit('updateSettings', settings);
     });
 });

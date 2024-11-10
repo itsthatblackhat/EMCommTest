@@ -31,11 +31,12 @@ io.on('connection', (socket) => {
 
     socket.simulationSettings = {
         latency: 60000, // Default latency
-        bandwidth: 4000 // Default bandwidth in kbps
+        bandwidth: 4000, // Default bandwidth in kbps
+        lastSyncTime: new Date() // Stores the last time Earth and Mars were in sync
     };
 
     socket.on('updateSettings', (settings) => {
-        socket.simulationSettings = settings;
+        socket.simulationSettings = { ...socket.simulationSettings, ...settings };
         console.log(`Settings updated for ${socket.id}:`, settings);
     });
 
@@ -43,7 +44,11 @@ io.on('connection', (socket) => {
         const { message, destination, latency, bandwidth } = data;
         console.log('Received AI query:', message);
 
-        // Use the latency and bandwidth settings from the client or fallback to defaults
+        // Calculate the current time difference due to Martian day length
+        const solsSinceLastSync = Math.floor((new Date() - socket.simulationSettings.lastSyncTime) / (24 * 3600 * 1000 + 40 * 60 * 1000));
+        const earthToMarsTimeDifference = solsSinceLastSync * 40 * 60 * 1000; // Difference in milliseconds
+
+        // Use these settings for the simulation
         const queryLatency = latency || socket.simulationSettings.latency;
         const queryBandwidth = bandwidth || socket.simulationSettings.bandwidth;
 
@@ -53,6 +58,7 @@ io.on('connection', (socket) => {
     - Latency (one-way): ${queryLatency} ms
     - Bandwidth: ${queryBandwidth} kbps
     - Destination: ${destination}
+    - Time Difference: ${earthToMarsTimeDifference} ms
 
     Calculate the estimated total transmission time from the origin to the destination and back, including any necessary data transmission time. Please respond in a JSON format:
 
@@ -63,22 +69,71 @@ io.on('connection', (socket) => {
 
         console.log('Sending query to AI:', prompt);
 
+        const distanceToDestination = {
+            'Mars': 54.6 * 1e6, // Distance to Mars in kilometers at closest approach
+            'Moon': 0.384 * 1e6, // Distance to Moon
+            'Earth': 0 // Assuming the message stays on Earth
+        };
+
+        const speedOfLight = 299792; // km/s
+
         setTimeout(async () => {
             const aiResponse = await queryAI(prompt);
             console.log('Received response from AI:', aiResponse);
 
             if (aiResponse.success) {
-                // Ensure aiResponse.data is a string before using replace
                 const aiData = aiResponse.data;
 
                 if (typeof aiData === 'string') {
-                    const cleanResponse = aiData.replace(/```json\n?|\n?```/g, '').trim();
-                    let timeEstimate = JSON.parse(cleanResponse).TimeEstimate || 0;
+                    const jsonMatch = aiData.match(/```json([\s\S]*?)```/);
+                    if (jsonMatch && jsonMatch[1]) {
+                        const cleanResponse = jsonMatch[1].trim();
+                        try {
+                            const parsedResponse = JSON.parse(cleanResponse);
+                            let timeEstimate = parsedResponse.TimeEstimate || 0;
+                            let distance = distanceToDestination[destination] || 0;
 
-                    // Emit an event to update the client's UI with the calculated time
-                    io.emit('aiResponse', { success: true, data: `TimeEstimate:${timeEstimate}` });
+                            // Adjusting for Mars' longer day
+                            timeEstimate += earthToMarsTimeDifference;
 
-                    callback({ success: true, data: `TimeEstimate:${timeEstimate}` });
+                            // Ensuring we don't exceed the speed of light
+                            let speed = distance / (timeEstimate / 2000); // Speed in km/s, half the time for one way
+                            if(speed > speedOfLight) {
+                                speed = speedOfLight;
+                                // Recalculate time estimate to be realistic
+                                timeEstimate = Math.round((distance / speedOfLight) * 2 * 1000); // Time for round trip in ms
+                            }
+
+                            // Emit an event to update the client's UI with the calculated data
+                            io.emit('aiResponse', {
+                                success: true,
+                                data: {
+                                    timeEstimate: timeEstimate,
+                                    distance: distance,
+                                    speed: speed,
+                                    solsDifference: solsSinceLastSync
+                                }
+                            });
+
+                            callback({
+                                success: true,
+                                data: {
+                                    timeEstimate: timeEstimate,
+                                    distance: distance,
+                                    speed: speed,
+                                    solsDifference: solsSinceLastSync
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Error parsing JSON:', error);
+                            io.emit('aiResponse', { success: false, message: 'Error parsing AI response' });
+                            callback({ success: false, message: 'Error parsing AI response' });
+                        }
+                    } else {
+                        console.error('Could not extract JSON from AI response:', aiData);
+                        io.emit('aiResponse', { success: false, message: 'Invalid AI response format' });
+                        callback({ success: false, message: 'Invalid AI response format' });
+                    }
                 } else {
                     console.error('AI response data is not a string:', aiData);
                     io.emit('aiResponse', { success: false, message: 'Invalid AI response format' });
@@ -90,6 +145,9 @@ io.on('connection', (socket) => {
                 callback({ success: false, message: aiResponse.message });
             }
             console.log('AI response processed');
+
+            // Update the last sync time for the next query
+            socket.simulationSettings.lastSyncTime = new Date();
         }, queryLatency);
     });
 
@@ -103,10 +161,13 @@ io.on('connection', (socket) => {
                 return callback({ success: false, message: 'Failed to read image' });
             }
 
-            const transferTime = (imageBuffer.length / ((bandwidth * 1000) / 8)) * 1000; // Convert bandwidth to bytes per second
+            // Calculate the time to transfer the image data
+            const transferTime = (imageBuffer.length * 8) / (bandwidth * 1000); // Converting bytes to bits and then to ms
+            const totalTime = latency + transferTime;
+
             setTimeout(() => {
                 callback({ success: true, data: imageBuffer.toString('base64') });
-            }, latency + transferTime);
+            }, totalTime);
         });
     });
 

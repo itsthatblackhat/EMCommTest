@@ -9,6 +9,10 @@
 <body>
 <div class="container">
     <h1>EMCommTest</h1>
+    <div class="introduction">
+        <h3>Welcome to EMCommTest</h3>
+
+    </div>
     <div id="status">Connecting...</div>
 
     <!-- Simulation Controls -->
@@ -32,7 +36,7 @@
 
     <!-- AI Feedback Section -->
     <div id="aiFeedback">
-        <h3>AI Status</h3>
+        <h3>AI Feedback</h3>
         <div id="aiResponse">Waiting for AI...</div>
     </div>
 
@@ -43,10 +47,37 @@
             <input type="text" id="message" placeholder="Enter message">
             <button id="send">Send</button>
         </div>
+
+        <p>
+            EMCommTest offers an interactive experience simulating communication between Earth and Mars.</p>
+        a Mars' day, known as a 'sol', is approximately 24 hours, 39 minutes, and 35.244 seconds long, making it about 40 minutes longer than an Earth day. </p>
+        This simulation takes this difference into account, providing a realistic view of how time is managed across planets.
+        </p>
+        <p>
+            <strong>How Time Synchronization Works:</strong><br>
+            To simplify the concept of syncing time between Earth and Mars:
+        </p>
+        <ul>
+            <li>
+                <strong>Break Period:</strong> Imagine every Earth day at midnight UTC, there's a "break period" lasting 40 minutes. During this time, while Earth time essentially pauses, Mars time continues. This simulates how Mars' time runs ahead of Earth's each day due to its longer sol.
+            </li>
+            <li>
+                <strong>Synchronization:</strong> After this break period, Mars time has moved ahead by 40 minutes. By adding this time difference to communications, we simulate how Mars and Earth can align their daily cycles despite the difference in day length.
+            </li>
+            <li>
+                <strong>User Experience:</strong> You'll see the time on Mars displayed in our simulation, which will reflect this synchronization. This not only shows the time difference but also how communication delays are affected by this offset.
+            </li>
+        </ul>
+        <p>
+            Explore how daily communication might be scheduled in a Martian colony, considering these unique timekeeping challenges. This simulation simplifies real-world complexities to provide an educational insight into interplanetary time management.
+        </p>
+
+
         <progress id="messageProgressBar" value="0" max="100"></progress>
         <div id="response">Waiting for response...</div>
         <div id="messageStats"></div>
     </div>
+
 
     <!-- Image Transfer Section -->
     <div class="image-transfer-section">
