@@ -1,17 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
 
-    // Elements
-    const status = document.getElementById('status');
-    const sendBtn = document.getElementById('send');
-    const messageInput = document.getElementById('message');
-    const responseDiv = document.getElementById('response');
-    const aiResponseDiv = document.getElementById('aiResponse');
-    const messageProgressBar = document.getElementById('messageProgressBar');
-    const messageStatsDiv = document.getElementById('messageStats');
-    const destinationSelect = document.getElementById('destination');
-    const latencyInput = document.getElementById('latency');
-    const bandwidthInput = document.getElementById('bandwidth');
+    // Function to safely get elements by ID, returning an object with a no-op textContent method if not found
+    const safeGetElementById = (id) => document.getElementById(id) || { textContent: (text) => console.error(`Element with id ${id} not found`) };
+
+    // Get all required elements
+    const status = safeGetElementById('status');
+    const sendBtn = safeGetElementById('send');
+    const messageInput = safeGetElementById('message');
+    const responseDiv = safeGetElementById('response');
+    const aiResponseDiv = safeGetElementById('aiResponse');
+    const messageProgressBar = safeGetElementById('messageProgressBar');
+    const messageStatsDiv = safeGetElementById('messageStats');
+    const destinationSelect = safeGetElementById('destination');
+    const latencyInput = safeGetElementById('latency');
+    const bandwidthInput = safeGetElementById('bandwidth');
+    const applySettingsBtn = safeGetElementById('apply-settings');
+
+    // Check if all necessary elements exist
+    if (!(sendBtn && messageInput && responseDiv && aiResponseDiv && messageProgressBar && messageStatsDiv && destinationSelect && latencyInput && bandwidthInput && applySettingsBtn)) {
+        console.error('One or more required DOM elements not found.');
+        return;
+    }
 
     socket.on('connect', () => {
         status.textContent = 'Connected to server';
@@ -25,6 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to update the progress bar based on the estimated time
     function updateProgressBar(progressBar, duration) {
+        if (!progressBar) {
+            console.error('Progress bar element not found');
+            return;
+        }
         progressBar.value = 0;
         let elapsedTime = 0;
         const interval = setInterval(() => {
@@ -50,47 +64,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Emit message to the server with settings
             socket.emit('sendAIQuery', { message, destination, latency, bandwidth }, (response) => {
-                console.log('Response received from server:', response);
-                if (response) {
-                    if (response.success) {
-                        const { timeEstimate, distance, speed, solsDifference } = response.data;
+                if (response && response.success) {
+                    const { timeEstimate, distance, speed, solsDifference } = response.data;
 
-                        aiResponseDiv.textContent = 'AI Response received!';
-                        responseDiv.textContent = 'AI Response received!';
+                    aiResponseDiv.textContent = 'AI Response received!';
+                    responseDiv.textContent = 'AI Response received!';
 
-                        // Start the progress bar
-                        updateProgressBar(messageProgressBar, timeEstimate);
+                    // Start the progress bar
+                    updateProgressBar(messageProgressBar, timeEstimate);
 
-                        // Display stats
-                        messageStatsDiv.innerHTML = `
-                <p><strong>Estimated Transmission Time:</strong> ${timeEstimate} ms</p>
-                <p><strong>Latency:</strong> ${latency} ms</p>
-                <p><strong>Bandwidth:</strong> ${bandwidth} kbps</p>
-                <p><strong>Approx. Distance Traveled:</strong> ${distance.toLocaleString()} km</p>
-                <p><strong>Approx. Speed:</strong> ${speed.toFixed(2)} km/s</p>
-                <p><strong>Sols Since Last Sync:</strong> ${solsDifference}</p>
-            `;
-                        console.log('UI updated successfully');
-                    } else {
-                        aiResponseDiv.textContent = `Error: ${response.message}`;
-                        responseDiv.textContent = 'Failed to receive AI response';
-                        console.error('Failed to process AI query:', response.message);
-                    }
+                    // Display stats
+                    messageStatsDiv.innerHTML = `
+                        <p><strong>Estimated Transmission Time:</strong> ${timeEstimate} ms</p>
+                        <p><strong>Latency:</strong> ${latency} ms</p>
+                        <p><strong>Bandwidth:</strong> ${bandwidth} kbps</p>
+                        <p><strong>Approx. Distance Traveled:</strong> ${distance.toLocaleString()} km</p>
+                        <p><strong>Approx. Speed:</strong> ${speed.toFixed(2)} km/s</p>
+                        <p><strong>Sols Difference:</strong> ${solsDifference}</p>
+                    `;
                 } else {
-                    aiResponseDiv.textContent = 'Error: No response received from server';
-                    responseDiv.textContent = 'Failed to receive AI response';
-                    console.error('No response received from server');
+                    aiResponseDiv.textContent = 'Error: No response or invalid response from server';
+                    responseDiv.textContent = 'Error: AI query failed';
                 }
             });
+        } else {
+            aiResponseDiv.textContent = 'Please enter a message to send to the AI.';
         }
     });
 
-    // Add event listener for updating settings
-    document.getElementById('apply-settings').addEventListener('click', () => {
-        const settings = {
-            latency: parseInt(latencyInput.value, 10),
-            bandwidth: parseInt(bandwidthInput.value, 10)
-        };
-        socket.emit('updateSettings', settings);
+    // Apply settings functionality
+    applySettingsBtn.addEventListener('click', () => {
+        const newLatency = parseInt(latencyInput.value, 10);
+        const newBandwidth = parseInt(bandwidthInput.value, 10);
+
+        if (!isNaN(newLatency) && !isNaN(newBandwidth)) {
+            socket.emit('applySettings', { latency: newLatency, bandwidth: newBandwidth }, (response) => {
+                if (response && response.success) {
+                    aiResponseDiv.textContent = 'Settings applied successfully!';
+                } else {
+                    aiResponseDiv.textContent = 'Failed to apply settings. Try again with valid numbers.';
+                }
+            });
+        } else {
+            aiResponseDiv.textContent = 'Please enter valid numbers for latency and bandwidth.';
+        }
     });
 });
